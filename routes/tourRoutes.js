@@ -10,14 +10,14 @@ const router = express.Router();
 // Check if body contains the name property and price property
 
 router
-    .route('/')
-    .get(tourController.getAllTours)
-    .post(tourController.createTour);
+  .route('/')
+  .get(tourController.getAllTours)
+  .post(tourController.createTour);
 
 router
-    .route('/:id')
-    .get(tourController.getTourById)
-    .patch(tourController.updateTour)
-    .delete(tourController.deleteTour);
+  .route('/:id')
+  .get(tourController.getTourById)
+  .patch(tourController.updateTour)
+  .delete(tourController.deleteTour);
 
 module.exports = router;
