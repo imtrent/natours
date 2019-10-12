@@ -56,6 +56,16 @@ userSchema.pre('save', async function(next) {
     next();
 });
 
+userSchema.pre('save', function(next) {
+    // If password was not modified, or if the document is new, just return
+    if (!this.isModified('password') || this.isNew) return next();
+
+    // Set password changed at to current time
+    this.passwordChangedAt = Date.now() - 1000;
+
+    next();
+});
+
 userSchema.methods.correctPassword = async function(
     candidatePassword,
     userPassword
@@ -63,7 +73,11 @@ userSchema.methods.correctPassword = async function(
     return await bcrypt.compare(candidatePassword, userPassword);
 };
 
+// Check if the password was changed after current JWT token creation
 userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
+    // Check if passwordChangedAt has a value
+    // Compare the JWTTimestamp with the changedTimeStamp
+
     if (this.passwordChangedAt) {
         const changedTimestamp = parseInt(
             this.passwordChangedAt.getTime() / 1000,
@@ -76,15 +90,16 @@ userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
     return false;
 };
 
+// Generate password reset token
 userSchema.methods.createPasswordResetToken = function() {
+    // Generate random string for reset token
     const resetToken = crypto.randomBytes(32).toString('hex');
 
+    // Encrypt and store hashed reset token on user document
     this.passwordResetToken = crypto
         .createHash('sha256')
         .update(resetToken)
         .digest('hex');
-
-    console.log({ resetToken }, this.passwordResetToken);
 
     // Expire is 10 minutes after token was created
     this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
