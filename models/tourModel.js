@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
-const validator = require('validator');
+// const validator = require('validator');
 
 const tourSchema = new mongoose.Schema(
     {
@@ -77,7 +77,36 @@ const tourSchema = new mongoose.Schema(
         secretTour: {
             type: Boolean,
             default: false
-        }
+        },
+        startLocation: {
+            type: {
+                type: String,
+                default: 'Point',
+                enum: ['Point']
+            },
+            coordinates: [Number],
+            address: String,
+            description: String
+        },
+        locations: [
+            {
+                type: {
+                    type: String,
+                    default: 'Point',
+                    enum: ['Point']
+                },
+                coordinates: [Number],
+                address: String,
+                description: String,
+                day: Number
+            }
+        ],
+        guides: [
+            {
+                type: mongoose.Schema.ObjectId,
+                ref: 'User'
+            }
+        ]
     },
     {
         toJSON: { virtuals: true },
@@ -87,6 +116,13 @@ const tourSchema = new mongoose.Schema(
 
 tourSchema.virtual('durationWeeks').get(function() {
     return this.duration / 7;
+});
+
+// Virtual populate() to connect two models
+tourSchema.virtual('reviews', {
+    ref: 'Review',
+    foreignField: 'tour',
+    localField: '_id'
 });
 
 // Document middleware: runs before mongoose save() and create()
@@ -103,15 +139,23 @@ tourSchema.pre(/^find/, function(next) {
     next();
 });
 
-tourSchema.post(/^find/, function(docs, next) {
-    console.log(`Query took ${Date.now() - this.start} milliseconds`);
-    console.log(docs);
+tourSchema.pre(/^find/, function(next) {
+    this.populate({
+        path: 'guides',
+        select: '-__v -passwordChangedAt'
+    });
     next();
 });
 
 tourSchema.pre('aggregate', function(next) {
     this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
     console.log(this.pipeline());
+    next();
+});
+
+tourSchema.post(/^find/, function(docs, next) {
+    console.log(`Query took ${Date.now() - this.start} milliseconds`);
+    console.log(docs);
     next();
 });
 
