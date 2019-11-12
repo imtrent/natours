@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema({
     },
     photo: String,
     role: {
-        type: 'String',
+        type: String,
         enum: ['user', 'guide', 'lead-guide', 'admin'],
         default: 'user'
     },
@@ -43,7 +43,7 @@ const userSchema = new mongoose.Schema({
     passwordResetExpires: Date,
     active: {
         type: Boolean,
-        deafult: true,
+        default: true,
         select: false
     }
 });
@@ -61,6 +61,7 @@ userSchema.pre('save', async function(next) {
     next();
 });
 
+// Password reset
 userSchema.pre('save', function(next) {
     // If password was not modified, or if the document is new, just return
     if (!this.isModified('password') || this.isNew) return next();
