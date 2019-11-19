@@ -166,9 +166,9 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 
         return next(
             new AppError(
-                'There was an error sending the email. Please try again later!'
-            ),
-            500
+                'There was an error sending the email. Please try again later!',
+                500
+            )
         );
     }
 });
