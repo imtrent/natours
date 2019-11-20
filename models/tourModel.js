@@ -20,7 +20,8 @@ const tourSchema = new mongoose.Schema(
             type: Number,
             default: 4.5,
             min: [1, 'Rating must be above 1.0'],
-            max: [5, 'Rating must be below 5.0']
+            max: [5, 'Rating must be below 5.0'],
+            set: val => Math.round(val * 10) / 10
         },
         ratingsQuantity: {
             type: Number,
@@ -154,13 +155,6 @@ tourSchema.pre(/^find/, function(next) {
 
 tourSchema.pre('aggregate', function(next) {
     this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-    console.log(this.pipeline());
-    next();
-});
-
-tourSchema.post(/^find/, function(docs, next) {
-    console.log(`Query took ${Date.now() - this.start} milliseconds`);
-    console.log(docs);
     next();
 });
 
