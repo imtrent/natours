@@ -9,13 +9,20 @@ exports.getOverview = catchAsync(async (req, res, next) => {
 
     // 3) Render template
     res.status(200).render('overview', {
-        title: 'Natours | All Tours',
+        title: 'All Tours',
         tours
     });
 });
 
-exports.getTour = (req, res) => {
-    res.status(200).render('tour', {
-        title: 'Natours | The Forest Hiker Tour'
+exports.getTour = catchAsync(async (req, res) => {
+    // 1) Get the data, for the requested tour (including reviews and guides)
+    const tour = await Tour.findOne({ slug: req.params.slug }).populate({
+        path: 'reviews',
+        fields: 'review rating user'
     });
-};
+
+    res.status(200).render('tour', {
+        title: `${tour.name}`,
+        tour
+    });
+});
