@@ -15,7 +15,10 @@ const userSchema = new mongoose.Schema({
         lowercase: true,
         validate: [validator.isEmail, 'Please enter a valid email address']
     },
-    photo: String,
+    photo: {
+        type: String,
+        default: 'default.jpg'
+    },
     role: {
         type: String,
         enum: ['user', 'guide', 'lead-guide', 'admin'],
@@ -32,7 +35,7 @@ const userSchema = new mongoose.Schema({
         required: [true, 'Please confirm your password'],
         validate: {
             // This only works on create and save
-            validator: function(el) {
+            validator: function (el) {
                 return el === this.password;
             },
             message: 'Passwords do not match'
@@ -48,7 +51,7 @@ const userSchema = new mongoose.Schema({
     }
 });
 
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
     if (!this.isModified('password')) return next();
 
     // Set password to encrypted version of password
@@ -62,7 +65,7 @@ userSchema.pre('save', async function(next) {
 });
 
 // Password reset
-userSchema.pre('save', function(next) {
+userSchema.pre('save', function (next) {
     // If password was not modified, or if the document is new, just return
     if (!this.isModified('password') || this.isNew) return next();
 
@@ -72,13 +75,13 @@ userSchema.pre('save', function(next) {
     next();
 });
 
-userSchema.pre(/^find/, function(next) {
+userSchema.pre(/^find/, function (next) {
     // this points to the current query
     this.find({ active: { $ne: false } });
     next();
 });
 
-userSchema.methods.correctPassword = async function(
+userSchema.methods.correctPassword = async function (
     candidatePassword,
     userPassword
 ) {
@@ -86,7 +89,7 @@ userSchema.methods.correctPassword = async function(
 };
 
 // Check if the password was changed after current JWT token creation
-userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
     // Check if passwordChangedAt has a value
     // Compare the JWTTimestamp with the changedTimeStamp
 
@@ -103,7 +106,7 @@ userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
 };
 
 // Generate password reset token
-userSchema.methods.createPasswordResetToken = function() {
+userSchema.methods.createPasswordResetToken = function () {
     // Generate random string for reset token
     const resetToken = crypto.randomBytes(32).toString('hex');
 
